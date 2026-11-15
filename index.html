@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>경고등 통역사 UI 시안</title>
+<style>
+  :root { --bg:#0d1117; --panel:#161c25; --panel2:#1d2531; --line:#283243; --text:#f3f6f9; --sub:#9aa7b6; --muted:#667385;
+          --red:#ff5a52; --red-soft:rgba(255,90,82,.14); --amber:#ffb547; --amber-soft:rgba(255,181,71,.14); --blue:#4c9bff; --blue-soft:rgba(76,155,255,.14); --green:#3fcf8e; }
+  * { box-sizing:border-box; margin:0; padding:0 }
+  body { background:#05070a; color:var(--text); font-family:'Noto Sans CJK KR','Apple SD Gothic Neo',sans-serif; display:grid; place-items:center; min-height:100vh; overflow:hidden }
+  .frame { width:1280px; height:720px; background:var(--bg); position:relative; display:flex; flex-direction:column; overflow:hidden }
+  .bar { height:68px; padding:0 48px; display:flex; align-items:center; justify-content:space-between; flex:none }
+  .logo { font-weight:700; font-size:22px; display:flex; align-items:center; gap:10px }
+  .logo i { width:30px; height:30px; border-radius:9px; background:var(--amber); display:grid; place-items:center; color:#2a1900; font-style:normal; font-size:18px; font-weight:800 }
+  .bar .r { display:flex; gap:18px; align-items:center; color:var(--sub); font-size:18px }
+  .pill { background:var(--panel2); padding:6px 14px; border-radius:999px; font-size:16px }
+  .mock { position:absolute; left:48px; bottom:18px; font-size:13px; color:var(--muted); border:1px solid var(--line); border-radius:999px; padding:4px 10px }
+  .screen { display:none; flex:1; padding:12px 48px 56px }
+  .screen.on { display:flex }
+  h1 { font-size:44px; line-height:1.3; letter-spacing:-.03em }
+  .sub { color:var(--sub); font-size:21px; line-height:1.55; margin-top:14px }
+  .btn { height:72px; padding:0 34px; border-radius:18px; font-size:22px; font-weight:700; border:0; display:inline-flex; align-items:center; justify-content:center }
+  .btn.p { background:var(--blue); color:#fff } .btn.g { background:var(--panel2); color:var(--text); border:1px solid var(--line) }
+  .row { display:flex; gap:14px; margin-top:34px }
+  .tag { display:inline-flex; align-items:center; gap:8px; padding:7px 14px; border-radius:999px; font-size:17px; font-weight:700 }
+  .tag.a { background:var(--amber-soft); color:var(--amber) } .tag.r { background:var(--red-soft); color:var(--red) } .tag.b { background:var(--blue-soft); color:var(--blue) }
+  /* 1 driving */
+  .map { position:absolute; inset:68px 0 0 0; background:#10161f }
+  .map svg { width:100%; height:100% }
+  .voice { position:absolute; left:48px; right:48px; bottom:46px; background:rgba(22,28,37,.97); border:1px solid var(--line); border-radius:26px; padding:24px 28px; display:flex; gap:22px; align-items:center; box-shadow:0 20px 60px rgba(0,0,0,.5) }
+  .tt { width:78px; height:78px; border-radius:20px; background:var(--amber-soft); color:var(--amber); display:grid; place-items:center; flex:none }
+  .voice .t { font-size:27px; font-weight:700; letter-spacing:-.02em }
+  .voice .h { font-size:18px; color:var(--sub); margin-top:6px }
+  .voice .f { flex:1 }
+  /* 2 detail */
+  .split { display:grid; grid-template-columns:1fr 440px; gap:44px; width:100%; align-items:start }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:24px; padding:26px }
+  .card h3 { font-size:18px; color:var(--sub); font-weight:500; margin-bottom:14px }
+  .li { display:flex; gap:14px; padding:14px 0; border-top:1px solid var(--line); font-size:19px; line-height:1.5 }
+  .li:first-of-type { border-top:0 }
+  .li b { width:30px; height:30px; border-radius:50%; background:var(--panel2); display:grid; place-items:center; flex:none; font-size:15px }
+  .big { width:110px; height:110px; border-radius:28px; background:var(--amber-soft); color:var(--amber); display:grid; place-items:center; margin-bottom:24px }
+  .lvl { display:flex; gap:8px; margin-top:26px }
+  .lvl span { flex:1; height:10px; border-radius:5px; background:var(--panel2) }
+  .lvl span.on1 { background:var(--green) } .lvl span.on2 { background:var(--amber) }
+  .lvlt { display:flex; justify-content:space-between; color:var(--muted); font-size:15px; margin-top:8px }
+  /* 3 service */
+  .places { display:flex; flex-direction:column; gap:14px; margin-top:28px }
+  .place { display:flex; align-items:center; gap:18px; background:var(--panel); border:1px solid var(--line); border-radius:20px; padding:20px 24px }
+  .place.sel { border-color:var(--blue); background:#14213a }
+  .place .n { font-size:23px; font-weight:700 } .place .m { color:var(--sub); font-size:17px; margin-top:4px }
+  .place .d { margin-left:auto; text-align:right; font-size:22px; font-weight:700 } .place .d small { display:block; color:var(--muted); font-size:15px; font-weight:400 }
+  /* 4 log */
+  .log { width:100% }
+  .lr { display:grid; grid-template-columns:70px 1fr 160px 160px; align-items:center; gap:18px; background:var(--panel); border:1px solid var(--line); border-radius:18px; padding:16px 22px; margin-top:12px; font-size:19px }
+  .lr .ic { width:54px; height:54px; border-radius:15px; display:grid; place-items:center }
+  .lr .nm { font-weight:700; font-size:21px } .lr .nm small { display:block; color:var(--muted); font-size:15px; font-weight:400; margin-top:4px }
+  .lr .km { color:var(--sub) }
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="bar"><div class="logo"><i>!</i>경고등 통역사</div><div class="r"><span class="pill" id="st">주행 중 · 92km/h</span><span>14:28</span></div></div>
+
+  <!-- 1. 주행 중 경고 감지 -->
+  <section class="screen" data-s="1">
+    <div class="map"><svg viewBox="0 0 1280 652" preserveAspectRatio="xMidYMid slice"><rect width="1280" height="652" fill="#10161f"/><g stroke="#18202b" stroke-width="2">
+      <path d="M0 80 H1280 M0 200 H1280 M0 320 H1280 M0 440 H1280 M0 560 H1280 M120 0 V652 M300 0 V652 M480 0 V652 M820 0 V652 M1000 0 V652 M1180 0 V652"/></g>
+      <path d="M640 700 C 640 520, 700 400, 860 260 S 1080 60, 1120 -20" fill="none" stroke="#263142" stroke-width="48"/>
+      <path d="M640 700 C 640 520, 700 400, 860 260 S 1080 60, 1120 -20" fill="none" stroke="#4c9bff" stroke-width="10" stroke-linecap="round" opacity=".85"/>
+      <path d="M640 430 l-20 34 20 -10 20 10z" fill="#f3f6f9"/></svg></div>
+    <div class="voice">
+      <div class="tt"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7 5c-2 2-3 4.5-3 7s1 5 3 7M17 5c2 2 3 4.5 3 7s-1 5-3 7"/><path d="M12 7v6"/><circle cx="12" cy="16.5" r=".8" fill="currentColor"/></svg></div>
+      <div class="f"><span class="tag a">주의 · 가까운 시일 내 점검</span><div class="t" style="margin-top:10px">타이어 공기압이 낮아요. 다음 휴게소에서 확인해 주세요</div><div class="h">음성으로 안내 중 · 정차하면 자세한 내용을 보여 드려요</div></div>
+      <button class="btn p">휴게소 안내</button>
+    </div>
+  </section>
+
+  <!-- 2. 경고 상세 (정차 후) -->
+  <section class="screen" data-s="2">
+    <div class="split">
+      <div>
+        <div class="big"><svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7 5c-2 2-3 4.5-3 7s1 5 3 7M17 5c2 2 3 4.5 3 7s-1 5-3 7"/><path d="M12 7v6"/><circle cx="12" cy="16.5" r=".8" fill="currentColor"/></svg></div>
+        <span class="tag a">노란색 경고 · 주의</span>
+        <h1 style="margin-top:16px">타이어 공기압 경고</h1>
+        <p class="sub">하나 이상의 타이어 공기압이 기준보다 낮을 때 켜져요.<br/>바로 위험하진 않지만, 그대로 오래 달리면 타이어가 손상될 수 있어요.</p>
+        <div class="lvl"><span class="on1"></span><span class="on2"></span><span></span></div>
+        <div class="lvlt"><span>참고</span><span>주의</span><span>즉시 정차</span></div>
+        <div class="row"><button class="btn p">가까운 정비소 찾기</button><button class="btn g">기록에 저장</button></div>
+      </div>
+      <div class="card">
+        <h3>지금 할 일</h3>
+        <div class="li"><b>1</b>안전한 곳에 정차해 타이어 네 개를 눈으로 확인해요</div>
+        <div class="li"><b>2</b>휴게소 공기 주입기로 적정 공기압까지 채워요</div>
+        <div class="li"><b>3</b>채운 뒤에도 다시 켜지면 펑크일 수 있으니 정비소에 들러요</div>
+        <div class="li" style="color:var(--muted);font-size:16px">자세한 기준은 운전석 문 안쪽 라벨과 차량 사용 설명서를 따르세요</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. 정비소·휴게소 안내 -->
+  <section class="screen" data-s="3">
+    <div style="width:100%">
+      <span class="tag b">타이어 공기압 경고 · 주의</span>
+      <h1 style="margin-top:14px;font-size:40px">어디로 안내할까요?</h1>
+      <div class="places">
+        <div class="place sel"><div><div class="n">○○휴게소 (상행)</div><div class="m">공기 주입기 있음 · 경로상 다음 휴게소</div></div><div class="d">15km<small>약 10분</small></div></div>
+        <div class="place"><div><div class="n">△△ 정비 센터</div><div class="m">타이어 점검 가능 · 경로에서 3km 벗어남</div></div><div class="d">22km<small>약 18분</small></div></div>
+        <div class="place"><div><div class="n">□□ 졸음쉼터</div><div class="m">정차만 가능</div></div><div class="d">6km<small>약 4분</small></div></div>
+      </div>
+      <div class="row" style="margin-top:26px"><button class="btn p">경유지로 추가</button><button class="btn g">나중에</button></div>
+    </div>
+  </section>
+
+  <!-- 4. 경고 기록 -->
+  <section class="screen" data-s="4">
+    <div class="log">
+      <h1 style="font-size:40px">경고 기록</h1>
+      <p class="sub" style="margin-top:6px">정비소에서 이 화면을 그대로 보여 주세요</p>
+      <div class="lr"><div class="ic" style="background:var(--amber-soft);color:var(--amber)">●</div><div class="nm">타이어 공기압 경고<small>11월 15일 14:28 · 고속도로 주행 중</small></div><div class="km">48,215 km</div><span class="tag a">주의</span></div>
+      <div class="lr"><div class="ic" style="background:var(--blue-soft);color:var(--blue)">●</div><div class="nm">워셔액 부족<small>11월 2일 08:10</small></div><div class="km">47,630 km</div><span class="tag b">참고</span></div>
+      <div class="lr"><div class="ic" style="background:var(--red-soft);color:var(--red)">●</div><div class="nm">브레이크 시스템 점검 필요<small>10월 21일 19:42 · 정비 완료</small></div><div class="km">46,902 km</div><span class="tag r">즉시 정차</span></div>
+      <div class="lr"><div class="ic" style="background:var(--blue-soft);color:var(--blue)">●</div><div class="nm">엔진오일 교체 시기<small>10월 3일 07:55</small></div><div class="km">46,120 km</div><span class="tag b">참고</span></div>
+    </div>
+  </section>
+
+  <span class="mock">UI 시안 · 가상 데이터</span>
+</div>
+<script>
+  const s = Number(new URLSearchParams(location.search).get('s')) || 1
+  document.querySelector(`[data-s="${s}"]`).classList.add('on')
+  document.getElementById('st').textContent = s === 1 ? '주행 중 · 92km/h' : '정차 중'
+</script>
+</body>
+</html>
